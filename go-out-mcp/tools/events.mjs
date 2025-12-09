@@ -8,7 +8,7 @@ import { config } from '../config/config.mjs';
 // Tool definition
 export const definition = {
   name: 'get_events',
-  description: 'Get a list of events from Go-Out with their statistics.',
+  description: 'Get a list of events from Go-Out with their statistics. Supports pagination for large datasets.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -23,6 +23,10 @@ export const definition = {
       limit: {
         type: 'number',
         description: 'Maximum events to return. Default: 20'
+      },
+      skip: {
+        type: 'number',
+        description: 'Pagination offset - number of events to skip. Default: 0'
       }
     }
   }
@@ -30,23 +34,39 @@ export const definition = {
 
 // Tool handler
 export async function handler(args) {
-  const { isActive = true, search = '', limit = 20 } = args;
+  const { isActive = true, search = '', limit = 20, skip = 0 } = args;
 
   const allEvents = [];
-  let skip = 0;
+  let currentSkip = skip;
+  let hasMore = true;
 
-  while (allEvents.length < limit && skip < config.defaults.maxEventsToFetch) {
-    const response = await fetchEvents({ isActive, search, skip });
+  // Fetch events until we have enough or no more available
+  while (allEvents.length < limit && hasMore && currentSkip < config.defaults.maxEventsToFetch + skip) {
+    const response = await fetchEvents({ isActive, search, skip: currentSkip });
     const events = response.events || [];
 
-    if (events.length === 0) break;
+    if (events.length === 0) {
+      hasMore = false;
+      break;
+    }
 
     allEvents.push(...events);
-    skip += config.defaults.eventsPageSize;
+    currentSkip += config.defaults.eventsPageSize;
+
+    // If we got fewer events than the page size, we've reached the end
+    if (events.length < config.defaults.eventsPageSize) {
+      hasMore = false;
+    }
   }
 
+  // Trim to requested limit
+  const trimmedEvents = allEvents.slice(0, limit);
+
+  // Check if there are more events after this batch
+  const moreAvailable = hasMore || allEvents.length > limit;
+
   // Transform to clean format
-  const events = allEvents.slice(0, limit).map(e => ({
+  const events = trimmedEvents.map(e => ({
     id: e._id,
     title: e.Title,
     url: e.Url,
@@ -61,6 +81,12 @@ export async function handler(args) {
     }
   }));
 
-  return { success: true, count: events.length, events };
+  return {
+    success: true,
+    count: events.length,
+    skip,
+    limit,
+    hasMore: moreAvailable,
+    events
+  };
 }
-

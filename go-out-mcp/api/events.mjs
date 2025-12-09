@@ -23,3 +23,5 @@ export async function fetchEvents({ isActive = true, search = '', skip = 0 } = {
   });
 }
 
+
+
