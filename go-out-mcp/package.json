@@ -1,0 +1,25 @@
+{
+  "name": "go-out-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Go-Out ticketing API integration",
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "node main.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "go-out",
+    "ticketing",
+    "events"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
