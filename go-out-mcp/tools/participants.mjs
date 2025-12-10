@@ -54,6 +54,7 @@ function flattenOrder(order) {
   const sharedFields = {
     phoneNumber: order.phone_number,
     email: order.mail,
+    birthdate: order.birthdate || null,
     gender: order.gender,
     age: order.age,
     status: order.status,

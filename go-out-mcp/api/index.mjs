@@ -6,7 +6,5 @@
 export { apiRequest } from './client.mjs';
 export { fetchEvents } from './events.mjs';
 export { fetchParticipants } from './participants.mjs';
-export { fetchTicketStatistics, fetchParticipantStatistics } from './statistics.mjs';
-
-
-
+export { fetchParticipantStatistics } from './statistics.mjs';
+export { fetchEventUserRoles, fetchTrackingLinks } from './salesman.mjs';

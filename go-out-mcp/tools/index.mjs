@@ -6,9 +6,10 @@
 import * as events from './events.mjs';
 import * as participants from './participants.mjs';
 import * as statistics from './statistics.mjs';
+import * as salesman from './salesman.mjs';
 
 // All registered tools
-const toolModules = [events, participants, statistics];
+const toolModules = [events, participants, statistics, salesman];
 
 // Export tool definitions for MCP
 export const definitions = toolModules.map(t => t.definition);
@@ -33,6 +34,8 @@ export async function executeTool(name, args) {
   
   return handler(args || {});
 }
+
+
 
 
 

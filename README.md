@@ -4,9 +4,10 @@ A Model Context Protocol (MCP) server for interacting with the [Go-Out](https://
 
 ## 🚀 Features
 
-- **get_events** - Fetch active/past events with statistics
-- **get_event_participants** - Get participants (flattened list including companions)
-- **get_event_statistics** - Get ticket statistics (accepted, pending, rejected)
+- **get_events** - Fetch active/past events with statistics and free-form language search
+- **get_event_participants** - Get participants (flattened list including companions and hidden participants)
+- **get_event_statistics** - Get comprehensive ticket statistics (accepted, pending, rejected, hidden, failed)
+- **get_salesman_statistics** - Get detailed statistics for salesmen/managers and tracking links (views, registrations, revenue)
 
 ## 📦 Installation
 
@@ -78,12 +79,14 @@ go-out-mcp/
 │   ├── client.mjs        # HTTP client
 │   ├── events.mjs        # Events API
 │   ├── participants.mjs  # Participants API
-│   └── statistics.mjs    # Statistics API
+│   ├── statistics.mjs    # Statistics API
+│   └── salesman.mjs      # Salesmen & tracking links API
 └── tools/
     ├── index.mjs         # Tool registry
     ├── events.mjs        # get_events tool
     ├── participants.mjs  # get_event_participants tool
-    └── statistics.mjs    # get_event_statistics tool
+    ├── statistics.mjs   # get_event_statistics tool
+    └── salesman.mjs      # get_salesman_statistics tool
 ```
 
 ## 📖 Documentation
@@ -93,6 +96,10 @@ See [docs/go-out-mcp-usage.md](docs/go-out-mcp-usage.md) for detailed usage guid
 ## 📄 License
 
 MIT
+
+
+
+
 
 
 

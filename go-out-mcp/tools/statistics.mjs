@@ -2,7 +2,7 @@
  * Statistics tool - definition and handler
  */
 
-import { fetchTicketStatistics } from '../api/index.mjs';
+import { fetchParticipantStatistics } from '../api/index.mjs';
 
 // Tool definition
 export const definition = {
@@ -28,7 +28,7 @@ export async function handler(args) {
     throw new Error('eventId is required');
   }
 
-  const stats = await fetchTicketStatistics(eventId);
+  const stats = await fetchParticipantStatistics(eventId);
 
   return {
     success: true,
@@ -37,10 +37,9 @@ export async function handler(args) {
       accepted: stats.Accepted || 0,
       pending: stats.Pending || 0,
       rejected: stats.Rejected || 0,
-      total: stats.Total || 0
+      hidden: stats.Hidden || 0,
+      failed: stats.Failed || 0,
+      total: (stats.Accepted || 0) + (stats.Pending || 0) + (stats.Rejected || 0) + (stats.Hidden || 0)
     }
   };
 }
-
-
-
