@@ -632,6 +632,8 @@ Fetch participants for a specific event. **Returns a flattened list** where each
   - `orderDate`: Date when order was placed
   - `ticketName`: Name of ticket type
   - `ticketPrice`: Ticket price
+  - `instagramLink`: Instagram profile link (formatted as `https://www.instagram.com/{username}` if only username provided, or `null` if empty)
+  - `facebookLink`: Facebook profile link (or `null` if empty)
   - `referrer`: Object with referrer info (`id`, `firstName`, `lastName`) or `null`
   - `orderId`: ID of the order (links companions to primary participant)
   - `isCompanion`: Boolean - `true` if this is a companion, `false` if primary participant
@@ -794,6 +796,8 @@ Get participants filtered by a specific salesman/referrer. Returns a flattened l
   - `orderDate`: Date when order was placed
   - `ticketName`: Name of ticket type
   - `ticketPrice`: Ticket price
+  - `instagramLink`: Instagram profile link (formatted as `https://www.instagram.com/{username}` if only username provided, or `null` if empty)
+  - `facebookLink`: Facebook profile link (or `null` if empty)
   - `referrer`: Object with referrer info (`id`, `firstName`, `lastName`) or `null`
   - `orderId`: ID of the order (links companions to primary participant)
   - `isCompanion`: Boolean - `true` if this is a companion, `false` if primary participant
@@ -801,12 +805,19 @@ Get participants filtered by a specific salesman/referrer. Returns a flattened l
 
 **Important notes:**
 - The tool fetches all participants first, then filters by salesman phone number (`ref` field)
+- **Includes tracking links**: Statistics also include participants from tracking links that belong to the salesman (identified by tracking link's `referer.ref_phone_number`)
 - Phone numbers are normalized for comparison (spaces, dashes, parentheses are removed)
 - Results are flattened - each participant (primary + companions) is a separate entry
 - Companions inherit referrer information from the primary order
 - Pagination is applied to the filtered results after flattening
+- **Statistics breakdown**:
+  - `totalRegistrations`: Direct participants (frees + paid) + tracking links (frees + paid)
+  - `accepted`: Direct accepted participants + tracking links (frees + paid, assumed accepted)
+  - `hidden`: Direct hidden participants + tracking links hidden registrations
+  - Tracking links statistics are calculated: `paidRegistrations = total_revenue / 70`, `hiddenRegistrations = sold - frees - paidRegistrations`
 
 ---
+
 
 ## 8. Extensibility Notes
 

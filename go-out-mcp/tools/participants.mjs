@@ -64,12 +64,33 @@ function formatInstagramLink(instagramValue) {
 }
 
 /**
+ * Extract all dynamic fields from order
+ * @param {Object} order - Raw order from API
+ * @returns {Object} Object with all dynamicFieldN entries
+ */
+function extractDynamicFields(order) {
+  const dynamicFields = {};
+  
+  // Find all keys that match dynamicFieldN pattern
+  for (const key in order) {
+    if (key.startsWith('dynamicField')) {
+      dynamicFields[key] = order[key];
+    }
+  }
+  
+  return Object.keys(dynamicFields).length > 0 ? dynamicFields : null;
+}
+
+/**
  * Flatten order into individual participants (primary + companions)
  * @param {Object} order - Raw order from API
  * @returns {Array} Array of flattened participant entries
  */
 function flattenOrder(order) {
   const participants = [];
+  
+  // Extract dynamic fields (dynamicField0, dynamicField1, etc.)
+  const dynamicFields = extractDynamicFields(order);
   
   // Shared fields that companions inherit from the order
   const sharedFields = {
@@ -89,7 +110,8 @@ function flattenOrder(order) {
       id: order.ref,
       firstName: order.ref_first_name,
       lastName: order.ref_last_name
-    } : null
+    } : null,
+    dynamicFields  // Add all dynamic fields
   };
 
   // Primary participant
