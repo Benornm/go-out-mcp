@@ -45,6 +45,27 @@ export const definition = {
 };
 
 /**
+ * Format Instagram link - if it's just a username, prepend the full URL
+ * @param {string|null|undefined} instagramValue - Instagram link or username
+ * @returns {string|null} Formatted Instagram URL or null
+ */
+function formatInstagramLink(instagramValue) {
+  if (!instagramValue || instagramValue.trim() === '') {
+    return null;
+  }
+  
+  const trimmed = instagramValue.trim();
+  
+  // If it's already a full URL, return as is
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  
+  // Otherwise, treat it as a username and format it
+  return `https://www.instagram.com/${trimmed}`;
+}
+
+/**
  * Flatten order into individual participants (primary + companions)
  * Same logic as in participants.mjs
  * @param {Object} order - Raw order from API
@@ -65,6 +86,8 @@ function flattenOrder(order) {
     orderDate: order.order_date,
     ticketName: order.ticket_name,
     ticketPrice: order.ticket_price,
+    instagramLink: formatInstagramLink(order.instagram_link),
+    facebookLink: order.facebook_link && order.facebook_link.trim() !== '' ? order.facebook_link.trim() : null,
     referrer: order.has_ref ? {
       id: order.ref,
       firstName: order.ref_first_name,
