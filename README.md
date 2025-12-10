@@ -8,6 +8,7 @@ A Model Context Protocol (MCP) server for interacting with the [Go-Out](https://
 - **get_event_participants** - Get participants (flattened list including companions and hidden participants)
 - **get_event_statistics** - Get comprehensive ticket statistics (accepted, pending, rejected, hidden, failed)
 - **get_salesman_statistics** - Get detailed statistics for salesmen/managers and tracking links (views, registrations, revenue)
+- **get_participants_by_salesman** - Get participants filtered by a specific salesman/referrer (flattened list)
 
 ## 📦 Installation
 
@@ -86,7 +87,8 @@ go-out-mcp/
     ├── events.mjs        # get_events tool
     ├── participants.mjs  # get_event_participants tool
     ├── statistics.mjs   # get_event_statistics tool
-    └── salesman.mjs      # get_salesman_statistics tool
+    ├── salesman.mjs      # get_salesman_statistics tool
+    └── participants-by-salesman.mjs # get_participants_by_salesman tool
 ```
 
 ## 📖 Documentation

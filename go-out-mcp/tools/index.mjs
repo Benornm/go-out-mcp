@@ -7,9 +7,10 @@ import * as events from './events.mjs';
 import * as participants from './participants.mjs';
 import * as statistics from './statistics.mjs';
 import * as salesman from './salesman.mjs';
+import * as participantsBySalesman from './participants-by-salesman.mjs';
 
 // All registered tools
-const toolModules = [events, participants, statistics, salesman];
+const toolModules = [events, participants, statistics, salesman, participantsBySalesman];
 
 // Export tool definitions for MCP
 export const definitions = toolModules.map(t => t.definition);

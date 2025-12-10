@@ -16,6 +16,7 @@ The Go-Out MCP server provides AI assistants (like Claude) with direct access to
 | `get_event_participants` | Get participants for a specific event. Returns a **flattened list** where each participant (primary + companions) is a separate entry. Automatically includes hidden participants when status is "All". |
 | `get_event_statistics` | Get comprehensive ticket statistics including accepted, pending, rejected, hidden, and failed counts |
 | `get_salesman_statistics` | Get detailed statistics for salesmen/managers and tracking links for an event. Shows views, free registrations, paid registrations, and revenue statistics. Tracking links are included as salesmen |
+| `get_participants_by_salesman` | Get participants filtered by a specific salesman/referrer. Returns a flattened list where each participant (including companions) is a separate entry. Includes detailed statistics: total registrations, accepted, hidden, and hidden percentage relative to accepted. Filters by salesman phone number |
 
 ---
 
@@ -64,7 +65,8 @@ go_out_mcp/
         ├── events.mjs                 # get_events tool
         ├── participants.mjs           # get_event_participants tool
         ├── statistics.mjs             # get_event_statistics tool
-        └── salesman.mjs               # get_salesman_statistics tool
+        ├── salesman.mjs               # get_salesman_statistics tool
+        └── participants-by-salesman.mjs # get_participants_by_salesman tool
 ```
 
 ---
@@ -487,6 +489,76 @@ The AI can understand natural language queries about events:
 
 ---
 
+### Example 10: Get Participants by Salesman
+
+**Prompt:**
+> "תביא לי את כל המשתתפים של Shlomi Yona לאירוע X"
+> (Bring me all participants of Shlomi Yona for event X)
+
+**What happens:**
+- Calls `get_participants_by_salesman` with `eventId: "X"`, `salesmanId: "0523012300"` (phone number)
+- Returns filtered participants (flattened) for that specific salesman
+- Includes both primary participants and companions
+
+**Sample response:**
+```json
+{
+  "success": true,
+  "eventId": "abc123",
+  "salesman": {
+    "id": "0523012300",
+    "firstName": "Shlomi",
+    "lastName": "Yona",
+    "phoneNumber": "0523012300"
+  },
+  "statistics": {
+    "totalRegistrations": 58,
+    "accepted": 45,
+    "hidden": 8,
+    "hiddenPercentage": "17.78%",
+    "pending": 5,
+    "rejected": 0
+  },
+  "orderCount": 45,
+  "totalCount": 58,
+  "count": 50,
+  "skip": 0,
+  "limit": 50,
+  "status": "All (including hidden)",
+  "participants": [
+    {
+      "id": "order123",
+      "firstName": "John",
+      "lastName": "Doe",
+      "phoneNumber": "0521234567",
+      "status": "Accepted",
+      "referrer": {
+        "id": "0523012300",
+        "firstName": "Shlomi",
+        "lastName": "Yona"
+      },
+      "isCompanion": false
+    }
+  ]
+}
+```
+
+**Key fields:**
+- `salesman`: Information about the salesman (name, phone number)
+- `statistics`: Detailed statistics object:
+  - `totalRegistrations`: Total number of participants (including companions)
+  - `accepted`: Number of accepted participants
+  - `hidden`: Number of hidden participants
+  - `hiddenPercentage`: Percentage of hidden participants relative to accepted (e.g., "17.78%")
+  - `pending`: Number of pending participants
+  - `rejected`: Number of rejected participants
+- `orderCount`: Number of orders (not individual participants)
+- `totalCount`: Total number of participants (including companions) - same as `statistics.totalRegistrations`
+- `count`: Number of participants returned in this page
+- `participants`: Array of flattened participant entries (same structure as `get_event_participants`)
+
+---
+
 ## 7. Tool Reference
 
 ### `get_events`
@@ -671,6 +743,68 @@ Get detailed statistics for salesmen/managers **and tracking links** for a speci
   - `sold` includes all registrations: free + paid + hidden
 - The `search` and `skipNum` parameters apply only to salesmen, not tracking links
 - Both salesmen and tracking links are included in the summary statistics
+
+---
+
+### `get_participants_by_salesman`
+
+Get participants filtered by a specific salesman/referrer. Returns a flattened list where each participant (including companions) is a separate entry. Filters by salesman phone number.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `eventId` | string | **Yes** | - | Event ID |
+| `salesmanId` | string | **Yes** | - | Salesman/referrer phone number or identifier |
+| `status` | string | No | `"All"` | Filter by status: `All`, `Pending`, `Accepted`, `Rejected`, `Hidden` |
+| `includeHidden` | boolean | No | `true` | When `status: "All"`, also fetch hidden participants |
+| `limit` | number | No | `50` | Max results per page |
+| `skip` | number | No | `0` | Pagination offset |
+
+**Response fields:**
+- `success`: Boolean indicating if the request succeeded
+- `eventId`: The event ID queried
+- `salesman`: Object with salesman information:
+  - `id`: Salesman phone number/identifier
+  - `firstName`: First name (if available)
+  - `lastName`: Last name (if available)
+  - `phoneNumber`: Phone number
+- `statistics`: Object with detailed statistics:
+  - `totalRegistrations`: Total number of participants (including companions)
+  - `accepted`: Number of accepted participants
+  - `hidden`: Number of hidden participants
+  - `hiddenPercentage`: Percentage of hidden participants relative to accepted (formatted as string, e.g., "17.78%")
+  - `pending`: Number of pending participants
+  - `rejected`: Number of rejected participants
+- `orderCount`: Number of orders (not individual participants)
+- `totalCount`: Total number of participants (including companions) matching the salesman - same as `statistics.totalRegistrations`
+- `count`: Number of participants returned in this page
+- `skip`: The pagination offset used
+- `limit`: The limit used
+- `status`: The status filter used (or "All (including hidden)" if hidden were included)
+- `participants`: Array of participant objects with the same structure as `get_event_participants`:
+  - `id`: Participant ID
+  - `firstName`: First name
+  - `lastName`: Last name
+  - `phoneNumber`: Phone number
+  - `email`: Email address
+  - `birthdate`: Date of birth (ISO format)
+  - `gender`: Gender (Hebrew: "זכר" or "נקבה")
+  - `age`: Age
+  - `status`: Registration status (`Accepted`, `Pending`, `Rejected`, `Hidden`)
+  - `hidden`: Boolean indicating if participant is hidden
+  - `orderDate`: Date when order was placed
+  - `ticketName`: Name of ticket type
+  - `ticketPrice`: Ticket price
+  - `referrer`: Object with referrer info (`id`, `firstName`, `lastName`) or `null`
+  - `orderId`: ID of the order (links companions to primary participant)
+  - `isCompanion`: Boolean - `true` if this is a companion, `false` if primary participant
+  - `primaryParticipantName`: Name of primary participant (only present if `isCompanion: true`)
+
+**Important notes:**
+- The tool fetches all participants first, then filters by salesman phone number (`ref` field)
+- Phone numbers are normalized for comparison (spaces, dashes, parentheses are removed)
+- Results are flattened - each participant (primary + companions) is a separate entry
+- Companions inherit referrer information from the primary order
+- Pagination is applied to the filtered results after flattening
 
 ---
 
@@ -881,7 +1015,15 @@ Logs go to stderr and won't interfere with the MCP protocol.
    - Results are sorted by total registrations (free + paid)
    - Summary includes aggregated statistics from both salesmen and tracking links
 
+8. **Participants by Salesman**
+   - `get_participants_by_salesman` filters participants by a specific salesman/referrer
+   - Uses phone number matching (normalized for comparison)
+   - Returns flattened list (primary + companions as separate entries)
+   - Includes detailed statistics: total registrations, accepted, hidden, and hidden percentage relative to accepted
+   - Supports all status filters and pagination
+   - Includes salesman information in the response
+
 ---
 
-*Last updated: December 9, 2025 - Added tracking links support to salesman statistics*
+*Last updated: December 9, 2025 - Added tracking links support and participants by salesman filtering*
 

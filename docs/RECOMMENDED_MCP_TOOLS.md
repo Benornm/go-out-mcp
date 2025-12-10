@@ -32,7 +32,9 @@
 
 ---
 
-### 1. `get_participants_by_salesman` ⭐⭐⭐
+### ✅ `get_participants_by_salesman` - **IMPLEMENTED** ⭐⭐⭐
+**Status**: ✅ מומש ועובד!
+
 **תיאור**: קבלת רשימת משתתפים מסוננת לפי איש מכירות ספציפי
 
 **Endpoint**: משתמש ב-`getEventParticipants` + סינון
@@ -298,8 +300,8 @@
 
 ### Phase 1 - סטטיסטיקות אנשי מכירות (עדיפות גבוהה)
 1. ✅ `get_salesman_statistics` - סטטיסטיקות לפי איש מכירות - **IMPLEMENTED**
-2. ✅ `get_participants_by_salesman` - סינון לפי איש מכירות
-3. ✅ `get_table_report` - דוח שולחנות לפי איש מכירות
+2. ✅ `get_participants_by_salesman` - סינון לפי איש מכירות - **IMPLEMENTED**
+3. ⏳ `get_table_report` - דוח שולחנות לפי איש מכירות
 
 ### Phase 2 - יכולות נוספות למשתתפים (עדיפות גבוהה)
 4. ✅ `get_total_participants_count` - ספירת משתתפים
