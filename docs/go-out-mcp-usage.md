@@ -17,6 +17,7 @@ The Go-Out MCP server provides AI assistants (like Claude) with direct access to
 | `get_event_statistics` | Get comprehensive ticket statistics including accepted, pending, rejected, hidden, and failed counts |
 | `get_salesman_statistics` | Get detailed statistics for salesmen/managers and tracking links for an event. Shows views, free registrations, paid registrations, and revenue statistics. Tracking links are included as salesmen |
 | `get_participants_by_salesman` | Get participants filtered by a specific salesman/referrer. Returns a flattened list where each participant (including companions) is a separate entry. Includes detailed statistics: total registrations, accepted, hidden, and hidden percentage relative to accepted. Filters by salesman phone number |
+| `shorten_links` | Shorten one or more URLs using the is.gd service. Accepts a single URL string or an array of URLs and returns shortened links |
 
 ---
 
@@ -59,14 +60,16 @@ go_out_mcp/
     │   ├── events.mjs                 # Events API
     │   ├── participants.mjs           # Participants API
     │   ├── statistics.mjs             # Statistics API
-    │   └── salesman.mjs               # Salesmen & tracking links API
+    │   ├── salesman.mjs               # Salesmen & tracking links API
+    │   └── shorten-links.mjs          # URL shortening API (is.gd)
     └── tools/
         ├── index.mjs                  # Tool registry
         ├── events.mjs                 # get_events tool
         ├── participants.mjs           # get_event_participants tool
         ├── statistics.mjs             # get_event_statistics tool
         ├── salesman.mjs               # get_salesman_statistics tool
-        └── participants-by-salesman.mjs # get_participants_by_salesman tool
+        ├── participants-by-salesman.mjs # get_participants_by_salesman tool
+        └── shorten-links.mjs          # shorten_links tool
 ```
 
 ---
@@ -559,6 +562,51 @@ The AI can understand natural language queries about events:
 
 ---
 
+### Example 11: Shorten Links
+
+**Prompt:**
+> "תקצר לי את הלינקים הבאים: https://www.go-out.co/event/1764072733961?ref=a3f0a23f3f, https://www.example.com/very/long/url"
+
+**What happens:**
+- Calls `shorten_links` with `urls: ["https://www.go-out.co/event/1764072733961?ref=a3f0a23f3f", "https://www.example.com/very/long/url"]`
+- Returns shortened URLs from is.gd service
+
+**Sample response:**
+```json
+{
+  "success": true,
+  "total": 2,
+  "successful": 2,
+  "failed": 0,
+  "results": [
+    {
+      "original": "https://www.go-out.co/event/1764072733961?ref=a3f0a23f3f",
+      "shorturl": "https://is.gd/abc123",
+      "success": true
+    },
+    {
+      "original": "https://www.example.com/very/long/url",
+      "shorturl": "https://is.gd/xyz789",
+      "success": true
+    }
+  ]
+}
+```
+
+**Key fields:**
+- `total`: Total number of URLs processed
+- `successful`: Number of successfully shortened URLs
+- `failed`: Number of URLs that failed to shorten
+- `results`: Array of result objects, each containing:
+  - `original`: The original URL
+  - `shorturl`: The shortened URL (or `null` if failed)
+  - `success`: Boolean indicating if shortening succeeded
+  - `error`: Error message (only present if `success: false`)
+
+**Note:** The tool accepts either a single URL string or an array of URLs. If a single URL fails, it will be marked as failed but other URLs will still be processed.
+
+---
+
 ## 7. Tool Reference
 
 ### `get_events`
@@ -818,6 +866,41 @@ Get participants filtered by a specific salesman/referrer. Returns a flattened l
 
 ---
 
+### `shorten_links`
+
+Shorten one or more URLs using the is.gd URL shortening service. Accepts either a single URL string or an array of URLs.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `urls` | string \| string[] | **Yes** | - | Single URL string or array of URLs to shorten |
+
+**Response fields:**
+- `success`: Boolean indicating if the request succeeded
+- `total`: Total number of URLs processed
+- `successful`: Number of successfully shortened URLs
+- `failed`: Number of URLs that failed to shorten
+- `results`: Array of result objects, each containing:
+  - `original`: The original URL
+  - `shorturl`: The shortened URL from is.gd (or `null` if failed)
+  - `success`: Boolean indicating if shortening succeeded
+  - `error`: Error message (only present if `success: false`)
+
+**Important notes:**
+- The tool validates URL format before sending to is.gd
+- If one URL fails, others will still be processed (uses `Promise.allSettled`)
+- Invalid URLs will return an error message in the `error` field
+- The tool accepts both single URL strings and arrays of URLs for convenience
+
+**Example usage:**
+```json
+// Single URL
+{ "urls": "https://www.example.com/very/long/url" }
+
+// Multiple URLs
+{ "urls": ["https://www.example.com/url1", "https://www.example.com/url2"] }
+```
+
+---
 
 ## 8. Extensibility Notes
 
