@@ -37,6 +37,29 @@ AI actions:
 4. Present results grouped by salesperson
 ```
 
+### "לינקים לאירועים" / "Event Links"
+When a user requests links to Go-Out events (e.g., "give me links", "build links", "לינקים לאירועים"):
+
+**URL Format:**
+```
+https://www.go-out.co/event/{eventUrl}?ref=a3f0a23f3f
+```
+
+**Where:**
+- `{eventUrl}` is the `url` field from the event data (e.g., "1764072733961")
+- `ref` must always be `a3f0a23f3f` (the user's referral code), unless the user explicitly requests a different ref value
+
+**Example:**
+If an event has `url: "1764072733961"`, the link should be:
+```
+https://www.go-out.co/event/1764072733961?ref=a3f0a23f3f
+```
+
+**Implementation:**
+1. Extract the `url` field from each event object
+2. Always append `?ref=a3f0a23f3f` to the URL by default
+3. Only use a different ref value if the user explicitly specifies one
+
 ## Go-Out API Concepts
 
 ### Participants Structure
@@ -143,4 +166,5 @@ const wantsSeating = participant.dynamicFields &&
 ---
 
 Last updated: December 2024
+
 
