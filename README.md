@@ -84,6 +84,9 @@ go-out-mcp/
 │   ├── statistics.mjs    # Statistics API
 │   ├── salesman.mjs      # Salesmen & tracking links API
 │   └── shorten-links.mjs # URL shortening API (is.gd)
+├── utils/
+│   ├── participants-utils.mjs # Shared participant utilities (flattening, formatting)
+│   └── validation.mjs    # Shared validation utilities
 └── tools/
     ├── index.mjs         # Tool registry
     ├── events.mjs        # get_events tool

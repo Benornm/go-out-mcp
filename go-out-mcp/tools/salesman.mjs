@@ -5,6 +5,7 @@
  */
 
 import { fetchEventUserRoles, fetchTrackingLinks } from '../api/index.mjs';
+import { validateRequired } from '../utils/validation.mjs';
 
 // Tool definition
 export const definition = {
@@ -34,9 +35,7 @@ export const definition = {
 export async function handler(args) {
   const { eventId, search = '', skipNum = 0 } = args;
 
-  if (!eventId) {
-    throw new Error('eventId is required');
-  }
+  validateRequired(args, ['eventId']);
 
   // Fetch both user roles and tracking links in parallel
   const [userRolesResponse, trackingLinksResponse] = await Promise.all([

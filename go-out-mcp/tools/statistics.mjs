@@ -3,6 +3,7 @@
  */
 
 import { fetchParticipantStatistics } from '../api/index.mjs';
+import { validateRequired } from '../utils/validation.mjs';
 
 // Tool definition
 export const definition = {
@@ -24,9 +25,7 @@ export const definition = {
 export async function handler(args) {
   const { eventId } = args;
 
-  if (!eventId) {
-    throw new Error('eventId is required');
-  }
+  validateRequired(args, ['eventId']);
 
   const stats = await fetchParticipantStatistics(eventId);
 
