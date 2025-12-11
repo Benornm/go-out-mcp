@@ -73,11 +73,39 @@
 
 **Endpoint**: `POST /getTotalParticipants/`
 
+**⚠️ חשוב**: צריך לקרוא ל-`getTotalParticipants` **מספר פעמים** - פעם אחת לכל סטטוס:
+- `All`
+- `Pending`
+- `Accepted`
+- `Rejected`
+- `Hidden`
+
+**למה?** כי `status: "All"` פשוט מחזיר את הסכום של כולם, ולא את הפירוט לפי סטטוסים.
+
 **פרמטרים**:
 - `eventId` (required) - מזהה האירוע
-- `status` (optional) - סטטוס לספירה (default: "All")
+- `status` (required) - סטטוס לספירה: `"All"`, `"Pending"`, `"Accepted"`, `"Rejected"`, או `"Hidden"`
 
-**תגובה**:
+**תגובת API (לכל קריאה)**:
+```json
+{
+  "status": true,
+  "users": 361
+}
+```
+התגובה מחזירה את מספר המשתתפים (`users`) בהתאם לסטטוס ששלחנו.
+
+**לוגיקה**:
+1. קוראים ל-`getTotalParticipants` 5 פעמים במקביל (או ברצף) - פעם אחת לכל סטטוס:
+   - `status: "All"` → מחזיר `{ status: true, users: 450 }`
+   - `status: "Accepted"` → מחזיר `{ status: true, users: 300 }`
+   - `status: "Pending"` → מחזיר `{ status: true, users: 100 }`
+   - `status: "Rejected"` → מחזיר `{ status: true, users: 30 }`
+   - `status: "Hidden"` → מחזיר `{ status: true, users: 20 }`
+2. אוספים את ה-`users` מכל תגובה לפי הסטטוס
+3. מחזירים אובייקט עם כל הספירות
+
+**תגובה של הכלי (לאחר עיבוד)**:
 ```json
 {
   "success": true,
@@ -95,6 +123,7 @@
 **שימוש**:
 - "כמה משתתפים יש לאירוע X בסטטוס Accepted?"
 - "מה הספירה הכוללת של משתתפים לאירוע X?"
+- "תראה לי את כל הספירות לפי סטטוס לאירוע X"
 
 ---
 
@@ -304,9 +333,9 @@
 3. ⏳ `get_table_report` - דוח שולחנות לפי איש מכירות
 
 ### Phase 2 - יכולות נוספות למשתתפים (עדיפות גבוהה)
-4. ✅ `get_total_participants_count` - ספירת משתתפים
-5. ✅ `get_participant_change_logs` - היסטוריית שינויים
-6. ✅ `get_birthday_report` - דוח ימי הולדת
+4. ⏳ `get_total_participants_count` - ספירת משתתפים (קריאה מרובת פעמים ל-getTotalParticipants - פעם לכל סטטוס)
+5. ⏳ `get_participant_change_logs` - היסטוריית שינויים
+6. ⏳ `get_birthday_report` - דוח ימי הולדת
 
 ### Phase 3 - שיפורים (עדיפות בינונית)
 7. ✅ שיפור `get_event_participants` להוסיף:
