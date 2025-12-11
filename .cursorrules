@@ -1,0 +1,146 @@
+# Go-Out MCP Server - AI Assistant Rules
+
+## Project Context
+
+This is a Model Context Protocol (MCP) server for the Go-Out event management platform API.
+The server provides tools for Claude AI to interact with Go-Out events, participants, and statistics.
+
+## Key Technologies
+- Node.js with ES modules
+- MCP SDK (@modelcontextprotocol/sdk)
+- Go-Out API (https://www.go-out.co/endOne/)
+- Bearer token authentication via environment variable
+
+## User Request Interpretations
+
+### "דוח שולחנות" / "Table Report"
+When a user requests a "table report" or "דוח שולחנות" for an event:
+
+**Interpret as:**
+"Get all accepted participants for the event, filter only those who want seating, and return the list grouped and sorted by salesperson (referrer)."
+
+**How to execute:**
+1. Use `get_event_participants` with `status: 'Accepted'`
+2. Filter participants where `dynamicFields` contains a field about seating/tables and the answer is affirmative (כן, yes, true, etc.)
+3. Group results by `referrer` (salesperson)
+4. Sort by salesperson name or number of participants per salesperson
+5. Return a clean list showing each salesperson and their participants who want seating
+
+**Example flow:**
+```
+User: "תן לי דוח שולחנות לאירוע 691b13005ead7dac0e2c4145"
+
+AI actions:
+1. Call get_event_participants(eventId: "691b13005ead7dac0e2c4145", status: "Accepted")
+2. Filter: participant.dynamicFields contains seating question with affirmative answer
+3. Group by: participant.referrer.firstName + participant.referrer.lastName
+4. Present results grouped by salesperson
+```
+
+## Go-Out API Concepts
+
+### Participants Structure
+- **Primary participant**: The person who made the order
+- **Companions (meta)**: Additional people in the same order
+- **Flattening**: We flatten orders into individual participants for easier analysis
+- **Dynamic Fields**: Custom questions defined per event (e.g., "Do you want seating?")
+
+### Salesman vs Tracking Links
+- **Salesman**: A person with ref_phone_number who brings participants
+- **Tracking Link**: A URL link that tracks registrations (treated like a salesman in statistics)
+- Both are combined in `get_salesman_statistics`
+
+### Participant Statuses
+- `Pending`: Waiting for approval
+- `Accepted`: Approved to attend
+- `Rejected`: Not approved
+- `Hidden`: Hidden from main list (still counted in statistics)
+
+## Code Style Guidelines
+
+1. **Use async/await** - All API calls are asynchronous
+2. **ES modules** - Use `import/export`, not `require`
+3. **Error handling** - Always wrap API calls in try/catch
+4. **Phone normalization** - Remove spaces, dashes, leading zeros for comparison
+5. **Null safety** - Check for null/undefined before accessing nested properties
+6. **Consistent naming** - Use camelCase for variables, PascalCase for components
+
+## File Structure to Maintain
+
+```
+go-out-mcp/
+├── api/           # API client functions (one per endpoint)
+├── tools/         # MCP tool handlers (one per tool)
+├── main.mjs       # MCP server entry point
+└── README.md      # User documentation
+docs/
+├── go-out-mcp-usage.md           # Comprehensive usage guide
+├── RECOMMENDED_MCP_TOOLS.md       # Future tool ideas
+├── GO_OUT_API_QUICK_REFERENCE.md # API endpoints list
+└── GO_OUT_API_DOCUMENTATION.md   # Full API docs
+```
+
+## When Adding New Tools
+
+1. Create API function in `api/[domain].mjs`
+2. Export it from `api/index.mjs`
+3. Create tool handler in `tools/[tool-name].mjs`
+4. Register tool in `tools/index.mjs`
+5. Update `docs/go-out-mcp-usage.md` with examples
+6. Update main `README.md` features list
+7. Mark as implemented in `RECOMMENDED_MCP_TOOLS.md` if applicable
+
+## Testing Approach
+
+- Use temporary test scripts (test-*.mjs) for debugging
+- Always clean up test files after use
+- Use `console.error` for debugging MCP tools (not `console.log`)
+- Test with real event IDs when possible
+
+## Important Notes
+
+- **NEVER** commit the GOOUT_TOKEN to git
+- **ALWAYS** check if array exists before using `.map()`, `.filter()`, etc.
+- **PHONE NUMBERS**: Normalize before comparison (remove spaces, dashes, leading zeros)
+- **HEBREW**: Expect Hebrew names and text in responses
+- **PAGINATION**: Default limit is 50, use skip for pagination
+- **DYNAMIC FIELDS**: Check field existence and normalize "yes" answers (כן, yes, true, 1)
+
+## Common Patterns
+
+### Filtering by Salesman
+```javascript
+const normalizedSalesmanId = salesmanId.replace(/[\s-]/g, '').replace(/^0/, '');
+const filtered = participants.filter(p => {
+  const refId = p.referrer?.id?.replace(/[\s-]/g, '').replace(/^0/, '') || '';
+  return refId === normalizedSalesmanId;
+});
+```
+
+### Checking Dynamic Fields
+```javascript
+// Check if participant wants seating
+const wantsSeating = participant.dynamicFields && 
+  Object.values(participant.dynamicFields).some(field => {
+    const val = String(field.val || '').toLowerCase();
+    return ['כן', 'yes', 'true', '1', 'רוצה'].some(term => val.includes(term));
+  });
+```
+
+## Hebrew Glossary
+
+- דוח שולחנות = Table report
+- משתתפים = Participants
+- אנשי מכירות = Salespeople
+- מקומות ישיבה = Seating places
+- מאושר = Accepted
+- ממתין = Pending
+- מוסתר = Hidden
+- נדחה = Rejected
+- הרשמות = Registrations
+- הכנסות = Revenue
+
+---
+
+Last updated: December 2024
+
