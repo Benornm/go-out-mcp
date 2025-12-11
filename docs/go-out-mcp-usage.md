@@ -64,6 +64,8 @@ go_out_mcp/
     │   └── shorten-links.mjs          # URL shortening API (is.gd)
     ├── utils/
     │   ├── participants-utils.mjs     # Shared participant utilities
+    │   ├── salesman-utils.mjs         # Shared salesman utilities
+    │   ├── event-utils.mjs            # Shared event utilities
     │   └── validation.mjs             # Shared validation utilities
     └── tools/
         ├── index.mjs                  # Tool registry
